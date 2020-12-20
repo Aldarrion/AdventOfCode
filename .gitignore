@@ -2,4 +2,4 @@ a.out
 *.exe
 *.pdb
 .vscode
-
+main

@@ -79,4 +79,53 @@ fn main() {
     }
 
     println!("Error rate:\n{}", error_rate);
+
+    let mut possible_fields: Vec<Vec<i32>> = vec![(0..fields.len() as i32).collect(); fields.len()];
+    for ticket_i in 0..tickets.len() {
+        for (ticket_field_i, n) in tickets[ticket_i].iter().enumerate() {
+            for field_i in (0..possible_fields[ticket_field_i].len()).rev() {
+                let mut can_be = false;
+                let f = &fields[possible_fields[ticket_field_i][field_i] as usize];
+                for (min, max) in &f.ranges {
+                    if *n >= *min && *n <= *max {
+                        can_be = true;
+                    }
+                }
+                if !can_be {
+                    possible_fields[ticket_field_i].remove(field_i);
+                }
+            }
+        }
+    }
+
+    let mut certain_fields = vec![-1; fields.len()];
+    let mut fields_to_match = possible_fields.len() as i32;
+    while fields_to_match > 0 {
+        for i in 0..possible_fields.len() {
+            if possible_fields[i].len() == 1 {
+                certain_fields[i] = possible_fields[i][0];
+                fields_to_match -= 1;
+                let num_to_remove = certain_fields[i];
+                for pf_i in 0..possible_fields.len() {
+                    for f_i in 0..possible_fields[pf_i].len() {
+                        if possible_fields[pf_i][f_i] == num_to_remove {
+                            possible_fields[pf_i].remove(f_i);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    let mut res = 1 as u64;
+    for i in 0..certain_fields.len() {
+        let f = &fields[certain_fields[i] as usize];
+        if let Some(0) = f.name.find("departure") {
+            res *= my_ticket[i] as u64;
+        }
+    }
+
+    println!("Multiplied departures:\n{}", res);
 }
