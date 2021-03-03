@@ -55,7 +55,7 @@ fn eval(mut acc: i64, mut expr: &str) -> (i64, &str) {
     (acc, expr)
 }
 
-fn main() {
+fn first_part() -> i64 {
     let file = fs::File::open("input.txt").expect("Could not open the input");
 
     let lines = io::BufReader::new(file).lines();
@@ -69,5 +69,109 @@ fn main() {
         }
     }
 
-    println!("Sum of results:\n{}", res);
+    res
+}
+
+#[derive(Copy, Clone, PartialEq)]
+enum Token {
+    Num(i64),
+    Add,
+    Mul,
+    Open,
+    Close,
+}
+
+fn get_num(t: Token) -> i64 {
+    if let Token::Num(n) = t {
+        n
+    } else {
+        panic!("not a number");
+    }
+}
+
+fn eval_last_op(stack: &mut Vec<Token>) {
+    let a = get_num(stack.pop().unwrap());
+    let op = stack.pop().unwrap();
+    let b = get_num(stack.pop().unwrap());
+
+    let res = match op {
+        Token::Add => a + b,
+        Token::Mul => a * b,
+        _ => panic!("bad op"),
+    };
+
+    stack.push(Token::Num(res));
+}
+
+fn eval_line(line: &str) -> i64 {
+    let tokens = line.split_whitespace();
+
+    let mut stack = vec![Token::Num(0), Token::Add];
+    for token in tokens {
+        match token {
+            "+" => stack.push(Token::Add),
+            "*" => stack.push(Token::Mul),
+            "(" => stack.push(Token::Open),
+            ")" => stack.push(Token::Close),
+            _ => stack.push(Token::Num(token.parse::<i64>().unwrap())),
+        }
+
+        // Process stack
+        match stack[stack.len() - 1] {
+            Token::Close => {
+                stack.pop();
+                while stack.len() > 2 && stack[stack.len() - 2] != Token::Open {
+                    eval_last_op(&mut stack);
+                }
+
+                let val = stack.pop().unwrap();
+                stack.pop();
+                stack.push(val);
+
+                while stack.len() > 2 && stack[stack.len() - 2] == Token::Add {
+                    eval_last_op(&mut stack);
+                }
+            },
+            Token::Num(_) => {
+                if stack[stack.len() - 2] == Token::Add {
+                    eval_last_op(&mut stack);
+                }
+            },
+            _ => {},
+        }
+    }
+
+    while stack.len() > 1 {
+        eval_last_op(&mut stack);
+    }
+
+    if let Token::Num(result) = stack[0] {
+        result
+    } else {
+        panic!("no result");
+    }
+}
+
+fn second_part() -> i64 {
+    let file = fs::File::open("input.txt").expect("Could not open the input");
+
+    let lines = io::BufReader::new(file).lines();
+    let mut res = 0i64;
+    for line in lines {
+        if let Ok(line) = line {
+            let line = line.replace("(", "( ").replace(")", " )");
+            let line_res = eval_line(&line);
+            res += line_res;
+        }
+    }
+
+    res
+}
+
+fn main() {
+    let first = first_part();
+    println!("Sum of results 1:\n{}", first);
+
+    let second = second_part();
+    println!("Sum of results 2:\n{}", second);
 }
