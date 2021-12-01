@@ -3,3 +3,4 @@ a.out
 *.pdb
 .vscode
 main
+zig-cache
