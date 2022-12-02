@@ -38,8 +38,17 @@ enum RuleVal {
 0 = [aabaab, aabbbb, abaaab, ababbb]
 */
 
-fn gen_all(rules: &HashMap<i32, Vec<Vec<RuleVal>>>, rule_num: i32) -> Vec<String> {
+fn gen_all(mut res_42: &mut Vec<String>, rules: &HashMap<i32, Vec<Vec<RuleVal>>>, rule_num: i32) -> Vec<String> {
     let rule = rules.get(&rule_num).unwrap();
+
+    if rule_num == 42 && !res_42.is_empty() {
+        let mut res = Vec::new();
+        for s in res_42.iter() {
+            //println!("{}", s);
+            res.push(s.clone());
+        }
+        return res;
+    }
 
     let mut opts = Vec::new();
     for opt in rule {
@@ -47,7 +56,13 @@ fn gen_all(rules: &HashMap<i32, Vec<Vec<RuleVal>>>, rule_num: i32) -> Vec<String
         for val in opt {
             let gen_opts = match val {
                 RuleVal::Text(t) => vec![t.clone()],
-                RuleVal::Rule(opt_rule_num) => gen_all(&rules, *opt_rule_num),
+                RuleVal::Rule(opt_rule_num) => {
+                    let gen_r = gen_all(&mut res_42, &rules, *opt_rule_num);
+                    //if *opt_rule_num == 42 {
+                    //    println!("{}", res_42.len());
+                    //}
+                    gen_r
+                },
             };
 
             let mut opt_vars_2 = Vec::new();
@@ -60,6 +75,12 @@ fn gen_all(rules: &HashMap<i32, Vec<Vec<RuleVal>>>, rule_num: i32) -> Vec<String
         }
 
         opts.append(&mut opt_vars);
+    }
+
+    if rule_num == 42 {
+        for s in &opts {
+            res_42.push(s.clone());
+        }
     }
 
     opts
@@ -105,7 +126,8 @@ fn main() {
         }
     }
 
-    let acceptable = gen_all(&rules, 0);
+    let mut res_42 = Vec::new();
+    let acceptable = gen_all(&mut res_42, &rules, 0);
 
     //for a in acceptable {
     //    println!("{}", a);
