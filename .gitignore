@@ -1,6 +1,7 @@
 a.out
 *.exe
 *.pdb
+*.obj
 .vscode
 main
 zig-cache
