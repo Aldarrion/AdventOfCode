@@ -1,0 +1,7 @@
+[
+{
+  "directory": "",
+  "command": "clang -D_CRT_SECURE_NO_WARNINGS -O0 -g -o a.exe main.c",
+  "file": "main.c"
+}
+]
